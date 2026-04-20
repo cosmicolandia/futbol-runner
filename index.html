@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fútbol Runner elviejovar.com</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #222;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            background-color: #2e7d32; /* Verde césped */
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            touch-action: none; /* Previene el zoom y scroll en móviles */
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            width: 100%;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 2px black;
+            z-index: 5;
+            display: none;
+            white-space: nowrap; /* Evita que se rompa en 2 líneas en móviles */
+        }
+        
+        /* PANTALLA DE INICIO */
+        #pantallaInicio {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 50, 10, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+        }
+        #pantallaInicio h1 {
+            color: #ffeb3b;
+            font-size: 42px;
+            margin: 0 0 10px 0;
+            text-shadow: 3px 3px 0 #000;
+        }
+        .instrucciones {
+            background: rgba(0,0,0,0.6);
+            padding: 15px 25px;
+            border-radius: 15px;
+            max-width: 320px;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            border: 2px solid #4caf50;
+            text-align: left;
+        }
+        .instrucciones p { margin: 10px 0; }
+        
+        #btnJugar {
+            padding: 15px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #ffeb3b;
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #bcaa00, 0 10px 10px rgba(0,0,0,0.5);
+            transition: transform 0.1s, box-shadow 0.1s;
+            animation: latido 1.5s infinite;
+        }
+        #btnJugar:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 #bcaa00, 0 4px 4px rgba(0,0,0,0.5);
+        }
+        
+        @keyframes latido {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* PANTALLA GAME OVER */
+        #mensaje {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 25px 35px;
+            border-radius: 15px;
+            display: none;
+            cursor: pointer;
+            border: 2px solid #ff5722;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- INTERFAZ DEL JUEGO (Acorté los textos para que entre perfecto en celulares) -->
+    <div id="ui">
+        🏃 <span id="distVal">0</span>m | ⚽ <span id="pelotasVal">0</span> | 🏆 <span id="copasVal">0</span> | 🥅 <span id="golesVal">0</span>
+    </div>
+
+    <!-- PANTALLA DE INICIO -->
+    <div id="pantallaInicio">
+        <h1>Fútbol Runner ⚽</h1>
+        <div class="instrucciones">
+            <p><b>🎮 Controles:</b> Mueve el dedo/ratón o usa las flechas ⬅️ ➡️.</p>
+            <p><b>⚠️ Obstáculos:</b> Esquiva conos, barreras (🚧), tarjetas (🟥) y lesiones (🚑).</p>
+            <p><b>🏆 Copas:</b> Aparecen en la cancha o al juntar <b>50 pelotas</b>. ¡Son tus vidas para patear penales!</p>
+            <p><b>🥅 El Penal:</b> Cada 2000m patea al arco móvil con <b>doble clic</b> o <b>Espacio</b>.</p>
+        </div>
+        <button id="btnJugar" onclick="empezarJuego()">¡JUGAR!</button>
+    </div>
+
+    <!-- PANTALLA DE DERROTA -->
+    <div id="mensaje" onclick="volverAlInicio()">
+        <span id="textoMensaje" style="color: #ff5722;"></span><br><br>
+        <span id="resumenDistancia"></span><br>
+        <span id="resumenGoles"></span><br><br>
+        <span style="font-size: 16px; color: #4caf50;">(Toca para continuar)</span>
+    </div>
+
+    <canvas id="juego" width="400" height="600"></canvas>
+
+<script>
+    const canvas = document.getElementById('juego');
+    const ctx = canvas.getContext('2d');
+    
+    // Elementos DOM
+    const distDOM = document.getElementById('distVal');
+    const pelotasDOM = document.getElementById('pelotasVal');
+    const copasDOM = document.getElementById('copasVal');
+    const golesDOM = document.getElementById('golesVal');
+    const msjBox = document.getElementById('mensaje');
+    const msjTexto = document.getElementById('textoMensaje');
+    const pantallaInicio = document.getElementById('pantallaInicio');
+    const interfazUI = document.getElementById('ui');
+
+    // Variables del juego
+    let estado = 'INICIO'; // INICIO, JUGANDO, PENAL, RESULTADO_PENAL, GAMEOVER
+    let distancia = 0;
+    let pelotas = 0;
+    let copas = 0;
+    let goles = 0; // Goles anotados en los penales
+    let velocidadY = 6; // Velocidad base equilibrada
+    let frameCount = 0;
+    
+    // Mensajes temporales de penal
+    let timerPenal = 0;
+    let textoPenal = "";
+    let colorPenal = "";
+
+    // Umbrales
+    let proxCopa = 500;
+    let proxArco = 2000;
+
+    // Entidades
+    const jugador = { x: 200, y: 500, size: 40, emoji: '🏃‍♂️' };
+    let targetX = 200; 
+    
+    const arco = { x: 200, y: 100, width: 80, height: 40, emoji: '🥅', vx: 5, activo: false }; // Arco más rápido
+    let objetos = [];
+    let tiro = null;
+
+    let ultimoToque = 0;
+    let teclas = { izquierda: false, derecha: false };
+    
+    // Control Táctil / Mouse
+    canvas.addEventListener('pointermove', (e) => {
+        if (estado === 'JUGANDO') {
+            const rect = canvas.getBoundingClientRect();
+            targetX = e.clientX - rect.left;
+        }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (estado === 'INICIO' && e.code === 'Enter') empezarJuego();
+        if (e.key === 'ArrowLeft') teclas.izquierda = true;
+        if (e.key === 'ArrowRight') teclas.derecha = true;
+        if (e.code === 'Space' && estado === 'PENAL' && !tiro) disparar();
+    });
+    
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft') teclas.izquierda = false;
+        if (e.key === 'ArrowRight') teclas.derecha = false;
+    });
+
+    // Detectar Doble Toque
+    canvas.addEventListener('pointerdown', (e) => {
+        let ahora = Date.now();
+        if (ahora - ultimoToque < 300 && estado === 'PENAL' && !tiro) {
+            disparar();
+        }
+        ultimoToque = ahora;
+    });
+
+    function disparar() {
+        tiro = { x: jugador.x, y: jugador.y, vy: -14, size: 25, emoji: '⚽' }; // Tiro más rápido
+    }
+
+    function spawnObjeto() {
+        const tipos = [
+            { tipo: 'obstaculo', emoji: '🚧', prob: 0.15, nombre: 'barrera' },
+            { tipo: 'obstaculo', emoji: '🟥', prob: 0.15, nombre: 'tarjeta roja' },
+            { tipo: 'obstaculo', emoji: '🚑', prob: 0.15, nombre: 'lesión médica' },
+            { tipo: 'cono', prob: 0.35, nombre: 'cono naranja' },
+            { tipo: 'pelota', emoji: '⚽', prob: 0.20, nombre: 'pelota' }
+        ];
+        
+        let rand = Math.random();
+        let acumulado = 0;
+        let objElegido = tipos[0];
+        
+        for (let t of tipos) {
+            acumulado += t.prob;
+            if (rand < acumulado) {
+                objElegido = t;
+                break;
+            }
+        }
+
+        objetos.push({
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: -50,
+            size: 30,
+            tipo: objElegido.tipo,
+            emoji: objElegido.emoji,
+            nombre: objElegido.nombre
+        });
+    }
+
+    function actualizar() {
+        if (estado === 'INICIO' || estado === 'GAMEOVER') return;
+
+        if (estado === 'JUGANDO') {
+            distancia += velocidadY / 10;
+            distDOM.innerText = Math.floor(distancia);
+
+            // AUMENTA LA DIFICULTAD DE FORMA EQUILIBRADA
+            velocidadY = 6 + (distancia / 800); 
+            if (velocidadY > 15) velocidadY = 15; // Límite de velocidad máxima
+
+            // Control de movimiento
+            if (teclas.izquierda) {
+                jugador.x -= 8;
+                targetX = jugador.x;
+            } else if (teclas.derecha) {
+                jugador.x += 8;
+                targetX = jugador.x;
+            } else {
+                jugador.x += (targetX - jugador.x) * 0.3;
+            }
+
+            if (jugador.x < 20) jugador.x = 20;
+            if (jugador.x > canvas.width - 20) jugador.x = canvas.width - 20;
+            targetX = jugador.x; 
+
+            // Copa de la pista
+            if (distancia >= proxCopa) {
+                objetos.push({ x: Math.random() * (canvas.width - 40) + 20, y: -50, size: 35, tipo: 'copa', emoji: '🏆' });
+                proxCopa += 500;
+            }
+
+            // Iniciar Evento Penal
+            if (distancia >= proxArco) {
+                estado = 'PENAL';
+                arco.activo = true;
+                objetos = [];
+                targetX = canvas.width / 2;
+                jugador.x = canvas.width / 2;
+            }
+
+            frameCount++;
+            if (frameCount % Math.max(8, 35 - Math.floor(velocidadY)) === 0) spawnObjeto();
+
+            for (let i = objetos.length - 1; i >= 0; i--) {
+                let obj = objetos[i];
+                obj.y += velocidadY;
+
+                let dx = jugador.x - obj.x;
+                let dy = jugador.y - obj.y;
+                let dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 25) { 
+                    if (obj.tipo === 'obstaculo' || obj.tipo === 'cono') {
+                        let msjFinal = "";
+                        if (obj.nombre === 'lesión médica') msjFinal = "¡Te lesionaste!";
+                        else if (obj.nombre === 'tarjeta roja') msjFinal = "¡Te echaron!";
+                        else if (obj.nombre === 'cono naranja') msjFinal = "¡Sos de madera!";
+                        else if (obj.nombre === 'barrera') msjFinal = "¡Pegaste en la barrera!";
+                        
+                        perder(msjFinal);
+                        return;
+                    } else if (obj.tipo === 'pelota') {
+                        pelotas++;
+                        // AHORA PIDE SOLO 50 PELOTAS PARA UNA COPA
+                        if (pelotas > 0 && pelotas % 50 === 0) {
+                            copas++;
+                            copasDOM.innerText = copas;
+                        }
+                        pelotasDOM.innerText = pelotas;
+                        objetos.splice(i, 1);
+                    } else if (obj.tipo === 'copa') {
+                        copas++;
+                        copasDOM.innerText = copas;
+                        objetos.splice(i, 1);
+                    }
+                } else if (obj.y > canvas.height + 50) {
+                    objetos.splice(i, 1);
+                }
+            }
+        } 
+        else if (estado === 'PENAL') {
+            arco.x += arco.vx;
+            if (arco.x < 40 || arco.x > canvas.width - 40) {
+                arco.vx *= -1; 
+            }
+
+            if (tiro) {
+                tiro.y += tiro.vy;
+
+                if (tiro.y <= arco.y + 10) {
+                    if (Math.abs(tiro.x - arco.x) < arco.width / 2 + 10) {
+                        // ¡GOOOOOOL! (Muestra Tilde Verde)
+                        goles++;
+                        golesDOM.innerText = goles;
+                        textoPenal = "¡PASASTE EL PENAL! ✅";
+                        colorPenal = "#4caf50";
+                        timerPenal = 60; // Pausa de 1 seg
+                        estado = 'RESULTADO_PENAL';
+                        
+                    } else if (tiro.y < -20) {
+                        // ¡AFUERA! (Muestra X Roja)
+                        if (copas > 0) {
+                            copas--;
+                            copasDOM.innerText = copas;
+                            textoPenal = "¡AFUERA! ❌";
+                            colorPenal = "#f44336";
+                            timerPenal = 50; // Pausa
+                            estado = 'RESULTADO_PENAL';
+                        } else {
+                            perder("¡Erraste el penal y no tienes más chances!");
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        else if (estado === 'RESULTADO_PENAL') {
+            // Animación de pausa al mostrar si fue gol o falló
+            timerPenal--;
+            if (timerPenal <= 0) {
+                if (textoPenal.includes("✅")) {
+                    // Si fue gol, seguir jugando
+                    proxArco += 2000;
+                    estado = 'JUGANDO';
+                    arco.activo = false;
+                    tiro = null;
+                    distancia += 50;
+                } else {
+                    // Si falló pero tiene vidas, vuelve a intentar
+                    estado = 'PENAL';
+                    tiro = null;
+                }
+            }
+        }
+    }
+
+    function dibujarConoNaranja(x, y) {
+        ctx.fillStyle = '#ff5722';
+        ctx.beginPath();
+        ctx.moveTo(x, y - 15);
+        ctx.lineTo(x + 15, y + 15);
+        ctx.lineTo(x - 15, y + 15);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(x - 6, y - 2);
+        ctx.lineTo(x + 6, y - 2);
+        ctx.lineTo(x + 10, y + 7);
+        ctx.lineTo(x - 10, y + 7);
+        ctx.fill();
+    }
+
+    function dibujar() {
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for(let i = 0; i < canvas.height; i += 100) {
+            let offset = (estado === 'INICIO' || estado === 'GAMEOVER') ? 0 : (distancia % 100);
+            ctx.moveTo(0, i + offset);
+            ctx.lineTo(canvas.width, i + offset);
+        }
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Objetos
+        for (let obj of objetos) {
+            if (obj.tipo === 'cono') {
+                dibujarConoNaranja(obj.x, obj.y);
+            } else {
+                ctx.font = obj.size + 'px Arial';
+                ctx.fillText(obj.emoji, obj.x, obj.y);
+            }
+        }
+
+        // --- ZONA DE PENAL Y RESULTADO ---
+        if (estado === 'PENAL' || estado === 'RESULTADO_PENAL') {
+            ctx.font = '50px Arial';
+            ctx.fillText(arco.emoji, arco.x, arco.y);
+            
+            if (estado === 'PENAL' && !tiro) {
+                // Cartel Instrucción
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(20, canvas.height/2 - 60, canvas.width - 40, 140);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '20px Arial';
+                ctx.fillText('¡DOBLE TOQUE', canvas.width/2, canvas.height/2 - 20);
+                ctx.fillText('O ESPACIO PARA PATEAR!', canvas.width/2, canvas.height/2 + 10);
+
+                // Contador de chances
+                ctx.fillStyle = '#ffeb3b';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(`🏆 Chances: ${copas + 1}`, canvas.width / 2, canvas.height/2 + 50);
+            }
+
+            if (estado === 'RESULTADO_PENAL') {
+                // Muestra la ✅ o la ❌ gigante
+                ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                ctx.fillRect(0, canvas.height/2 - 40, canvas.width, 80);
+                
+                ctx.fillStyle = colorPenal;
+                ctx.font = 'bold 26px Arial';
+                ctx.fillText(textoPenal, canvas.width/2, canvas.height/2);
+            }
+        }
+
+        if (tiro) {
+            ctx.font = tiro.size + 'px Arial';
+            ctx.fillText(tiro.emoji, tiro.x, tiro.y);
+        }
+
+        // Jugador
+        ctx.font = jugador.size + 'px Arial';
+        ctx.fillText(jugador.emoji, jugador.x, jugador.y);
+        
+        if (estado !== 'GAMEOVER' && (!tiro)) {
+            ctx.font = '15px Arial';
+            let offsetX = 12;
+            let offsetY = 15;
+            if(estado === 'JUGANDO') offsetY += Math.sin(frameCount * 0.5) * 5; 
+            ctx.fillText('⚽', jugador.x + offsetX, jugador.y + offsetY);
+        }
+    }
+
+    function loop() {
+        actualizar();
+        dibujar();
+        requestAnimationFrame(loop);
+    }
+
+    function empezarJuego() {
+        pantallaInicio.style.display = 'none';
+        interfazUI.style.display = 'block';
+        reiniciarJuego();
+    }
+
+    function volverAlInicio() {
+        msjBox.style.display = 'none';
+        interfazUI.style.display = 'none';
+        pantallaInicio.style.display = 'flex';
+        estado = 'INICIO';
+    }
+
+    function perder(motivo) {
+        estado = 'GAMEOVER';
+        msjTexto.innerHTML = motivo;
+        document.getElementById('resumenDistancia').innerHTML = `Llegaste a: <b style='color:#ffeb3b'>${Math.floor(distancia)}m</b>`;
+        document.getElementById('resumenGoles').innerHTML = `Goles anotados: <b style='color:#4caf50'>${goles}</b>`;
+        msjBox.style.display = 'block';
+    }
+
+    function reiniciarJuego() {
+        estado = 'JUGANDO';
+        distancia = 0;
+        pelotas = 0;
+        copas = 0;
+        goles = 0;
+        velocidadY = 6; // Velocidad inicial equilibrada
+        proxCopa = 500;
+        proxArco = 2000;
+        objetos = [];
+        tiro = null;
+        arco.activo = false;
+        
+        distDOM.innerText = 0;
+        pelotasDOM.innerText = 0;
+        copasDOM.innerText = 0;
+        golesDOM.innerText = 0;
+        msjBox.style.display = 'none';
+        
+        targetX = canvas.width / 2;
+        jugador.x = canvas.width / 2;
+    }
+
+    loop();
+</script>
+</body>
+</html>
