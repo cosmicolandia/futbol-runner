@@ -8,8 +8,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #222;
-            color: white;
+            background-color: #1a1a1a;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             display: flex;
@@ -17,14 +16,26 @@
             align-items: center;
             height: 100vh;
         }
-        canvas {
-            background-color: #2e7d32; /* Verde césped */
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            touch-action: none;
+
+        #gameWrapper {
+            position: relative;
+            width: 400px;
+            height: 600px;
             max-width: 100vw;
             max-height: 100vh;
-            object-fit: contain;
         }
+
+        canvas {
+            background-color: #2e7d32;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            touch-action: none;
+            width: 100%;
+            height: 100%;
+            border: 3px solid #4caf50;
+            border-radius: 10px;
+            display: block;
+        }
+
         #ui {
             position: absolute;
             top: 10px;
@@ -36,75 +47,108 @@
             font-size: 18px;
             font-weight: bold;
             text-shadow: 2px 2px 2px black;
-            z-index: 5;
+            z-index: 1005;
             display: none;
             white-space: nowrap;
+            color: white;
         }
         
-        /* BOTÓN DE PAUSA */
         #btnPausa {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            bottom: 70px; /* Alineado a la altura del jugador */
+            right: 20px;
             width: 40px;
             height: 40px;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            border: 2px solid white;
-            border-radius: 50%;
+            background: transparent; /* Sin círculo de fondo */
+            color: #fff;
+            border: none; /* Sin bordes */
             display: none;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            z-index: 30;
-            font-size: 20px;
-            pointer-events: auto;
+            z-index: 1030;
+            font-size: 20px; /* Tamaño más pequeño */
+            opacity: 0.7; /* Más discreto */
+            transition: opacity 0.2s, transform 0.1s;
+            user-select: none;
         }
 
-        /* PANTALLA DE INICIO */
+        #btnPausa:active {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
         #pantallaInicio {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(10, 50, 10, 0.95);
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 20;
+            z-index: 1020;
             text-align: center;
+            border-radius: 10px;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
         }
+
         #pantallaInicio h1 {
             color: #ffeb3b;
-            font-size: 42px;
-            margin: 0 0 10px 0;
+            font-size: 40px;
+            margin: 0 0 20px 0;
             text-shadow: 3px 3px 0 #000;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
-        .instrucciones {
-            background: rgba(0,0,0,0.6);
-            padding: 15px 25px;
-            border-radius: 15px;
-            max-width: 320px;
-            font-size: 15px;
-            line-height: 1.6;
+
+        .instrucciones-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
             margin-bottom: 30px;
-            border: 2px solid #4caf50;
-            text-align: left;
+        }
+
+        .inst-item {
+            background: rgba(0,0,0,0.4);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #4caf50;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .inst-item b {
+            display: block;
+            color: #ffeb3b;
+            margin-bottom: 4px;
+            font-size: 14px;
         }
         
         #btnJugar {
-            padding: 15px 50px;
-            font-size: 24px;
+            padding: 18px 60px;
+            font-size: 26px;
             font-weight: bold;
             background-color: #ffeb3b;
             color: #000;
             border: none;
-            border-radius: 30px;
+            border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 6px 0 #bcaa00, 0 10px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 6px 0 #bcaa00;
+            transition: all 0.1s;
             animation: latido 1.5s infinite;
+        }
+
+        #btnJugar:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #bcaa00;
         }
         
         @keyframes latido {
@@ -113,53 +157,68 @@
             100% { transform: scale(1); }
         }
 
-        /* PANTALLA GAME OVER */
         #mensaje {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            width: 80%;
             font-size: 22px;
             font-weight: bold;
             text-align: center;
             background: rgba(0, 0, 0, 0.95);
-            padding: 25px 35px;
+            padding: 25px;
             border-radius: 15px;
             display: none;
             cursor: pointer;
             border: 2px solid #ff5722;
-            z-index: 10;
+            z-index: 1010;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-    <div id="ui">
-        🏃 <span id="distVal">0</span>m | ⚽ <span id="pelotasVal">0</span> | 🏆 <span id="copasVal">0</span> | 🥅 <span id="golesVal">0</span>
-    </div>
-
-    <div id="btnPausa" onclick="togglePausa()">⏸️</div>
-
-    <div id="pantallaInicio">
-        <h1>Fútbol Runner ⚽</h1>
-        <div class="instrucciones">
-            <p><b>🎮 Controles:</b> Mueve el dedo/ratón o usa las flechas ⬅️ ➡️.</p>
-            <p><b>⚠️ Obstáculos:</b> Esquiva conos, barreras (🚧), tarjetas (🟥) y lesiones (🚑).</p>
-            <p><b>🏆 Copas:</b> Aparecen en la cancha o al juntar <b>50 pelotas</b>.</p>
-            <p><b>🥅 El Penal:</b> Cada 2000m patea con <b>doble clic</b> o <b>Espacio</b>.</p>
-            <p><b>⏸️ Pausa:</b> Presiona <b>P</b> o usa el botón superior.</p>
+    <div id="gameWrapper">
+        <div id="ui">
+            🏃 <span id="distVal">0</span>m | ⚽ <span id="pelotasVal">0</span> | 🏆 <span id="copasVal">0</span> | 🥅 <span id="golesVal">0</span>
         </div>
-        <button id="btnJugar" onclick="empezarJuego()">¡JUGAR!</button>
-    </div>
 
-    <div id="mensaje" onclick="volverAlInicio()">
-        <span id="textoMensaje" style="color: #ff5722;"></span><br><br>
-        <span id="resumenDistancia"></span><br>
-        <span id="resumenGoles"></span><br><br>
-        <span style="font-size: 16px; color: #4caf50;">(Toca para continuar)</span>
-    </div>
+        <!-- Botón de pausa minimalista -->
+        <div id="btnPausa" onclick="togglePausa()">⏸️</div>
 
-    <canvas id="juego" width="400" height="600"></canvas>
+        <div id="pantallaInicio">
+            <h1>Fútbol Runner</h1>
+            <div class="instrucciones-grid">
+                <div class="inst-item">
+                    <b>🎮 MUEVETE</b>
+                    Desliza o usa flechas para esquivar.
+                </div>
+                <div class="inst-item">
+                    <b>⚽ PELOTAS</b>
+                    Cada 50 pelotas ganas 1 trofeo extra.
+                </div>
+                <div class="inst-item">
+                    <b>🏆 TROFEOS</b>
+                    Son vidas extra si fallas un penal.
+                </div>
+                <div class="inst-item">
+                    <b>🥅 PENALES</b>
+                    Doble toque para el GOL cada 2km.
+                </div>
+            </div>
+            <button id="btnJugar" onclick="empezarJuego()">¡A JUGAR!</button>
+        </div>
+
+        <div id="mensaje" onclick="volverAlInicio()">
+            <span id="textoMensaje" style="color: #ff5722;"></span><br><br>
+            <span id="resumenDistancia"></span><br>
+            <span id="resumenGoles"></span><br><br>
+            <span style="font-size: 16px; color: #4caf50;">(Toca para continuar)</span>
+        </div>
+
+        <canvas id="juego" width="400" height="600"></canvas>
+    </div>
 
 <script>
     const canvas = document.getElementById('juego');
@@ -198,7 +257,7 @@
 
     let ultimoToque = 0;
     let teclas = { izquierda: false, derecha: false };
-    
+
     canvas.addEventListener('pointermove', (e) => {
         if (estado === 'JUGANDO' && !pausado) {
             const rect = canvas.getBoundingClientRect();
@@ -319,19 +378,14 @@
 
                 if (dist < 25) { 
                     if (obj.tipo === 'obstaculo' || obj.tipo === 'cono') {
-                        let msjFinal = "";
+                        let msjFinal = "¡Perdiste!";
                         if (obj.nombre === 'lesión médica') msjFinal = "¡Te lesionaste!";
                         else if (obj.nombre === 'tarjeta roja') msjFinal = "¡Te echaron!";
-                        else if (obj.nombre === 'cono naranja') msjFinal = "¡Sos de madera!";
-                        else if (obj.nombre === 'barrera') msjFinal = "¡Pegaste en la barrera!";
                         perder(msjFinal);
                         return;
                     } else if (obj.tipo === 'pelota') {
                         pelotas++;
-                        if (pelotas > 0 && pelotas % 50 === 0) {
-                            copas++;
-                            copasDOM.innerText = copas;
-                        }
+                        if (pelotas > 0 && pelotas % 50 === 0) { copas++; copasDOM.innerText = copas; }
                         pelotasDOM.innerText = pelotas;
                         objetos.splice(i, 1);
                     } else if (obj.tipo === 'copa') {
@@ -346,16 +400,14 @@
         } 
         else if (estado === 'PENAL') {
             arco.x += arco.vx;
-            if (arco.x < 40 || arco.x > canvas.width - 40) {
-                arco.vx *= -1; 
-            }
+            if (arco.x < 40 || arco.x > canvas.width - 40) arco.vx *= -1; 
             if (tiro) {
                 tiro.y += tiro.vy;
                 if (tiro.y <= arco.y + 10) {
                     if (Math.abs(tiro.x - arco.x) < arco.width / 2 + 10) {
                         goles++;
                         golesDOM.innerText = goles;
-                        textoPenal = "¡PASASTE EL PENAL! ✅";
+                        textoPenal = "¡GOL! PASASTE ✅";
                         colorPenal = "#4caf50";
                         timerPenal = 60;
                         estado = 'RESULTADO_PENAL';
@@ -368,7 +420,7 @@
                             timerPenal = 50;
                             estado = 'RESULTADO_PENAL';
                         } else {
-                            perder("¡Erraste el penal y no tienes más chances!");
+                            perder("¡Erraste el penal final!");
                             return;
                         }
                     }
@@ -412,7 +464,7 @@
         ctx.fillStyle = '#2e7d32';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
         ctx.lineWidth = 4;
         ctx.beginPath();
         for(let i = 0; i < canvas.height; i += 100) {
@@ -426,30 +478,22 @@
         ctx.textBaseline = 'middle';
 
         for (let obj of objetos) {
-            if (obj.tipo === 'cono') {
-                dibujarConoNaranja(obj.x, obj.y);
-            } else {
-                ctx.font = obj.size + 'px Arial';
-                ctx.fillText(obj.emoji, obj.x, obj.y);
-            }
+            if (obj.tipo === 'cono') dibujarConoNaranja(obj.x, obj.y);
+            else { ctx.font = obj.size + 'px Arial'; ctx.fillText(obj.emoji, obj.x, obj.y); }
         }
 
         if (estado === 'PENAL' || estado === 'RESULTADO_PENAL') {
             ctx.font = '50px Arial';
             ctx.fillText(arco.emoji, arco.x, arco.y);
-            
             if (estado === 'PENAL' && !tiro) {
                 ctx.fillStyle = 'rgba(0,0,0,0.7)';
                 ctx.fillRect(20, canvas.height/2 - 60, canvas.width - 40, 140);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '20px Arial';
-                ctx.fillText('¡DOBLE TOQUE', canvas.width/2, canvas.height/2 - 20);
-                ctx.fillText('O ESPACIO PARA PATEAR!', canvas.width/2, canvas.height/2 + 10);
+                ctx.font = '18px Arial';
+                ctx.fillText('¡DOBLE TOQUE PARA PATEAR!', canvas.width/2, canvas.height/2 - 10);
                 ctx.fillStyle = '#ffeb3b';
-                ctx.font = 'bold 24px Arial';
-                ctx.fillText(`🏆 Chances: ${copas + 1}`, canvas.width / 2, canvas.height/2 + 50);
+                ctx.fillText(`🏆 Vidas: ${copas + 1}`, canvas.width / 2, canvas.height/2 + 30);
             }
-
             if (estado === 'RESULTADO_PENAL') {
                 ctx.fillStyle = 'rgba(0,0,0,0.85)';
                 ctx.fillRect(0, canvas.height/2 - 40, canvas.width, 80);
@@ -459,30 +503,26 @@
             }
         }
 
-        if (tiro) {
-            ctx.font = tiro.size + 'px Arial';
-            ctx.fillText(tiro.emoji, tiro.x, tiro.y);
-        }
+        if (tiro) { ctx.font = tiro.size + 'px Arial'; ctx.fillText(tiro.emoji, tiro.x, tiro.y); }
 
         ctx.font = jugador.size + 'px Arial';
         ctx.fillText(jugador.emoji, jugador.x, jugador.y);
         
         if (estado !== 'GAMEOVER' && (!tiro)) {
             ctx.font = '15px Arial';
-            let offsetX = 12;
-            let offsetY = 15;
-            if(estado === 'JUGANDO' && !pausado) offsetY += Math.sin(frameCount * 0.5) * 5; 
-            ctx.fillText('⚽', jugador.x + offsetX, jugador.y + offsetY);
+            let offsetY = 15 + (pausado ? 0 : Math.sin(frameCount * 0.5) * 5);
+            ctx.fillText('⚽', jugador.x + 12, jugador.y + offsetY);
         }
 
         if (pausado) {
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 40px Arial';
+            ctx.fillStyle = '#ffeb3b';
+            ctx.font = 'bold 50px Arial';
             ctx.fillText('PAUSA', canvas.width/2, canvas.height/2);
+            ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
-            ctx.fillText('Toca el botón o "P" para seguir', canvas.width/2, canvas.height/2 + 50);
+            ctx.fillText('Toca el botón para seguir', canvas.width/2, canvas.height/2 + 50);
         }
     }
 
@@ -505,15 +545,14 @@
         btnPausa.style.display = 'none';
         pantallaInicio.style.display = 'flex';
         estado = 'INICIO';
-        pausado = false;
     }
 
     function perder(motivo) {
         estado = 'GAMEOVER';
         btnPausa.style.display = 'none';
         msjTexto.innerHTML = motivo;
-        document.getElementById('resumenDistancia').innerHTML = `Llegaste a: <b style='color:#ffeb3b'>${Math.floor(distancia)}m</b>`;
-        document.getElementById('resumenGoles').innerHTML = `Goles anotados: <b style='color:#4caf50'>${goles}</b>`;
+        document.getElementById('resumenDistancia').innerHTML = `Llegaste a: <b>${Math.floor(distancia)}m</b>`;
+        document.getElementById('resumenGoles').innerHTML = `Goles: <b>${goles}</b>`;
         msjBox.style.display = 'block';
     }
 
@@ -531,13 +570,11 @@
         tiro = null;
         arco.activo = false;
         btnPausa.innerText = "⏸️";
-        
         distDOM.innerText = 0;
         pelotasDOM.innerText = 0;
         copasDOM.innerText = 0;
         golesDOM.innerText = 0;
         msjBox.style.display = 'none';
-        
         targetX = canvas.width / 2;
         jugador.x = canvas.width / 2;
     }
