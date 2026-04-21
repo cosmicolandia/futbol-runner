@@ -3,51 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fútbol Runner</title>
+    <title>Fútbol Runner - Estadio Completo</title>
     <style>
-        body {
+        /* --- ESTILOS GLOBALES Y FONDO --- */
+        html, body {
             margin: 0;
             padding: 0;
-            background-color: #222;
+            /* CAMBIO: El fondo de la página ahora es verde como el césped */
+            background-color: #2e7d32; 
             color: white;
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
+            overflow: hidden; /* Evita barras de desplazamiento */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw;
         }
+
+        /* --- ESTILOS DEL ÁREA DE JUEGO (CANVAS) --- */
         canvas {
-            background-color: #2e7d32; 
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-            touch-action: none; 
-            border-radius: 8px;
-            max-width: 100%;
-            max-height: 90vh;
+            background-color: #2e7d32; /* Mismo color que el fondo */
+            /* CAMBIO: Sombra más sutil y de color verde oscuro para integrarse */
+            box-shadow: 0 0 25px rgba(10, 50, 10, 0.7); 
+            touch-action: none; /* Mejora el control táctil */
+            border-radius: 12px; /* Bordes un poco más redondeados */
+            
+            /* CAMBIO: Se añadió un borde negro sólido para separar el juego del fondo */
+            border: 4px solid #111; 
+            
+            max-width: 95%; /* Pequeño margen en móviles */
+            max-height: 90vh; /* Evita que se corte en vertical */
+            box-sizing: border-box; /* Incluye el borde en el tamaño */
         }
+
+        /* --- ESTILOS DE LA INTERFAZ (UI) --- */
         #ui {
             position: absolute;
-            top: 10px;
+            top: 20px; /* Un poco más abajo */
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
-            pointer-events: none;
-            width: 100%;
+            pointer-events: none; /* No interfiere con los clics */
+            width: auto;
+            max-width: 90%;
+            padding: 8px 20px;
+            /* CAMBIO: Fondo verde oscuro translúcido para legibilidad */
+            background-color: rgba(10, 50, 10, 0.8); 
+            border-radius: 20px;
             font-size: 16px;
             font-weight: bold;
-            text-shadow: 2px 2px 2px black;
+            text-shadow: 1px 1px 2px black;
             z-index: 5;
-            display: none;
+            display: none; /* Se muestra al empezar */
             white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.2);
         }
         
-        #pantallaInicio {
+        /* --- PANTALLAS SUPERPUESTAS (INICIO Y FIN) --- */
+        #pantallaInicio, #mensaje {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(10, 50, 10, 0.95);
+            /* CAMBIO: Fondo verde oscuro translúcido para todas las pantallas */
+            background-color: rgba(10, 40, 10, 0.96); 
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -55,80 +76,78 @@
             z-index: 20;
             text-align: center;
         }
+
+        /* Ajustes específicos para el mensaje final */
+        #mensaje {
+            cursor: pointer;
+            border: none; /* Eliminado el borde naranja anterior */
+            z-index: 10;
+            display: none;
+        }
+
+        /* Estilos de texto */
         #pantallaInicio h1 {
-            color: #ffeb3b;
-            font-size: 42px;
-            margin: 0 0 10px 0;
+            color: #ffeb3b; /* Amarillo brillante */
+            font-size: 48px;
+            margin: 0 0 15px 0;
             text-shadow: 3px 3px 0 #000;
         }
+
         .instrucciones {
-            background: rgba(0,0,0,0.6);
-            padding: 15px 25px;
+            background: rgba(0,0,0,0.5); /* Fondo negro muy translúcido */
+            padding: 20px 30px;
             border-radius: 15px;
-            max-width: 320px;
+            max-width: 350px;
             font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 25px;
-            border: 2px solid #4caf50;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            border: 2px solid #4caf50; /* Borde verde claro */
             text-align: left;
         }
-        .instrucciones p { margin: 8px 0; }
+        .instrucciones p { margin: 10px 0; }
         
+        /* --- BOTÓN JUGAR --- */
         #btnJugar {
-            padding: 15px 50px;
-            font-size: 24px;
+            padding: 18px 60px;
+            font-size: 26px;
             font-weight: bold;
-            background-color: #ffeb3b;
-            color: #000;
+            background-color: #ffeb3b; /* Amarillo */
+            color: #000; /* Texto negro */
             border: none;
-            border-radius: 30px;
+            border-radius: 40px;
             cursor: pointer;
-            box-shadow: 0 6px 0 #bcaa00, 0 10px 10px rgba(0,0,0,0.5);
+            /* Efecto 3D */
+            box-shadow: 0 8px 0 #bcaa00, 0 12px 15px rgba(0,0,0,0.5);
             animation: latido 1.5s infinite;
-            transition: transform 0.1s;
+            transition: all 0.1s;
         }
 
         #btnJugar:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #bcaa00;
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #bcaa00, 0 5px 10px rgba(0,0,0,0.5);
         }
         
         @keyframes latido {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.06); }
             100% { transform: scale(1); }
         }
 
-        #mensaje {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 22px;
-            font-weight: bold;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.95);
-            padding: 25px 35px;
-            border-radius: 15px;
-            display: none;
-            cursor: pointer;
-            border: 2px solid #ff5722;
-            z-index: 10;
-        }
-
+        /* --- AVISO TEMPORAL (GOLES) --- */
         #avisoTemporal {
             position: absolute;
             top: 150px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 0, 0, 0.8);
+            background: rgba(255, 87, 34, 0.9); /* Naranja vibrante */
             color: white;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 10px;
             font-weight: bold;
             display: none;
             z-index: 30;
             pointer-events: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
     </style>
 </head>
@@ -143,8 +162,9 @@
     <div id="pantallaInicio">
         <h1>Fútbol Runner ⚽</h1>
         <div class="instrucciones">
-            <p><b>🎮 Controles:</b> Mantené presionado y deslizá para moverte. Doble clic para patear penales.</p>
-            <p><b>⚠️ Obstáculos:</b> Esquivá conos, barreras y lesiones. Si tenés <b>Goles (🥅)</b>, podés "pagar" uno para seguir jugando.</p>
+            <p><b>🎮 Controles:</b> Mové el cursor hacia los laterales (o flechas del teclado). Doble clic (o Espacio) para patear penales.</p>
+	    <p><b>🥅 Penales:</b> Cada 2000m tenés chances de patear un penal.</p>
+            <p><b>⚠️ Obstáculos:</b> Esquivá tarjetas, conos, barreras y lesiones. Si tenés <b>Goles de Penales (🥅)</b>, podés "pagar" uno para seguir jugando.</p>
             <p><b>🟨 Tarjetas:</b> 2 amarillas o 1 roja = ¡EXPULSADO!</p>
             <p><b>🏆 Copas:</b> Aparecen cada 500m o al juntar <b>50 pelotas</b>. ¡Son chances para el penal!</p>
         </div>
@@ -152,18 +172,20 @@
     </div>
 
     <div id="mensaje" onclick="volverAlInicio()">
-        <span id="textoMensaje" style="color: #ff5722;"></span><br><br>
-        <span id="resumenDistancia"></span><br>
-        <span id="resumenGoles"></span><br><br>
+        <span id="textoMensaje" style="color: #ff5722; font-size: 30px;"></span><br><br>
+        <span id="resumenDistancia" style="font-size: 20px;"></span><br>
+        <span id="resumenGoles" style="font-size: 20px;"></span><br><br>
         <span style="font-size: 16px; color: #4caf50;">(Toca para continuar)</span>
     </div>
 
     <canvas id="juego" width="400" height="600"></canvas>
 
     <script>
+    // --- CONFIGURACIÓN E INICIALIZACIÓN ---
     const canvas = document.getElementById('juego');
     const ctx = canvas.getContext('2d');
     
+    // Elementos del DOM
     const distDOM = document.getElementById('distVal');
     const pelotasDOM = document.getElementById('pelotasVal');
     const amarillasDOM = document.getElementById('amarillasVal');
@@ -175,6 +197,7 @@
     const interfazUI = document.getElementById('ui');
     const avisoTemp = document.getElementById('avisoTemporal');
 
+    // Estado del juego
     let estado = 'INICIO'; // INICIO, JUGANDO, PAUSA, PENAL, RESULTADO_PENAL, GAMEOVER
     let distancia = 0;
     let pelotas = 0;
@@ -184,35 +207,44 @@
     let velocidadY = 8; 
     let frameCount = 0;
     
+    // Variables de penal
     let timerPenal = 0;
     let textoPenal = "";
     let colorPenal = "";
-
     let proxCopa = 500;
     let proxArco = 2000;
 
+    // Entidades
     const jugador = { x: 200, y: 500, size: 40, emoji: '🏃‍♂️' };
-    let targetX = 200; 
+    let targetX = 200; // Para movimiento suave con mouse/touch
     
     const arco = { x: 200, y: 100, width: 80, height: 40, emoji: '🥅', vx: 6, activo: false }; 
     let objetos = [];
-    let tiro = null;
-    let ultimoToque = 0;
+    let tiro = null; // La pelota cuando patea el penal
+    
+    // Control de input
+    let ultimoToque = 0; // Para detectar doble clic
     let teclas = { izquierda: false, derecha: false };
 
+    // --- EVENTOS DE ENTRADA (MOUSE, TOUCH, TECLADO) ---
+
+    // Movimiento con Mouse/Touch
     canvas.addEventListener('pointermove', (e) => {
         if (estado === 'JUGANDO') {
             const rect = canvas.getBoundingClientRect();
+            // Calcula la posición X relativa al canvas escalado
             targetX = (e.clientX - rect.left) * (canvas.width / rect.width);
         }
     });
 
+    // Controles de Teclado
     window.addEventListener('keydown', (e) => {
         if (estado === 'INICIO' && e.code === 'Enter') empezarJuego();
         if (e.key === 'ArrowLeft') teclas.izquierda = true;
         if (e.key === 'ArrowRight') teclas.derecha = true;
+        // Disparar penal con Espacio
         if (e.code === 'Space' && (estado === 'PENAL') && !tiro) disparar();
-        // Tecla P para pausa opcional
+        // Tecla P para pausa
         if (e.code === 'KeyP') alternarPausaManual();
     });
     
@@ -221,29 +253,32 @@
         if (e.key === 'ArrowRight') teclas.derecha = false;
     });
 
+    // Clic/Toque para Pausa y Disparo de Penal
     canvas.addEventListener('pointerdown', (e) => {
         const rect = canvas.getBoundingClientRect();
         const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
         const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-        // --- Lógica de Pausa: Clic arriba o sobre el jugador ---
+        // --- Lógica de Pausa: Clic sobre el jugador ---
         if (estado === 'JUGANDO' || estado === 'PAUSA') {
             const dx = clickX - jugador.x;
             const dy = clickY - jugador.y;
-            // Si el clic es en un radio de 50px del jugador
+            // Si el clic es cerca del jugador (radio de 50px)
             if (Math.sqrt(dx*dx + dy*dy) < 50) {
                 alternarPausaManual();
-                return; // Salimos para no disparar el penal accidentalmente si estuviéramos en ese estado
+                return; // Evita disparar penal accidentalmente
             }
         }
 
-        // --- Lógica de Penal (Doble Click) ---
+        // --- Lógica de Penal (Doble Click/Toque) ---
         let ahora = Date.now();
         if (ahora - ultimoToque < 300 && estado === 'PENAL' && !tiro) {
             disparar();
         }
         ultimoToque = ahora;
     });
+
+    // --- FUNCIONES DEL JUEGO ---
 
     function alternarPausaManual() {
         if (estado === 'JUGANDO') {
@@ -254,15 +289,18 @@
     }
 
     function disparar() {
+        // Crea la pelota que viaja hacia el arco
         tiro = { x: jugador.x, y: jugador.y, vy: -14, size: 25, emoji: '⚽' }; 
     }
 
     function mostrarAvisoTemporal(texto) {
         avisoTemp.innerText = texto;
         avisoTemp.style.display = 'block';
+        // Desaparece después de 2 segundos
         setTimeout(() => { avisoTemp.style.display = 'none'; }, 2000);
     }
 
+    // Genera un obstáculo o ítem aleatorio
     function spawnObjeto() {
         const tipos = [
             { tipo: 'obstaculo', emoji: '🚧', prob: 0.12, nombre: 'barrera', frase: 'Pegaste en la barrera' },
@@ -277,6 +315,7 @@
         let acumulado = 0;
         let objElegido = tipos[0];
         
+        // Selección por probabilidad
         for (let t of tipos) {
             acumulado += t.prob;
             if (rand < acumulado) {
@@ -285,9 +324,10 @@
             }
         }
 
+        // Añadir a la lista de objetos en pantalla
         objetos.push({
             x: Math.random() * (canvas.width - 40) + 20,
-            y: -50,
+            y: -50, // Empieza arriba fuera de pantalla
             size: 30,
             tipo: objElegido.tipo,
             emoji: objElegido.emoji,
@@ -296,14 +336,19 @@
         });
     }
 
+    // --- LÓGICA PRINCIPAL (ACTUALIZACIÓN) ---
     function actualizar() {
+        // No actualizar si el juego no está activo
         if (estado === 'INICIO' || estado === 'GAMEOVER' || estado === 'PAUSA') return;
 
+        // --- MODO CORRIENDO (JUGANDO) ---
         if (estado === 'JUGANDO') {
+            // Aumentar distancia y velocidad progresivamente
             distancia += velocidadY / 12;
             distDOM.innerText = Math.floor(distancia);
             velocidadY = 8 + (distancia / 400); 
 
+            // Movimiento del jugador (Teclado o Suavizado de mouse/touch)
             if (teclas.izquierda) {
                 jugador.x -= 9;
                 targetX = jugador.x;
@@ -311,61 +356,71 @@
                 jugador.x += 9;
                 targetX = jugador.x;
             } else {
+                // Suavizado (Lerp) hacia la posición del mouse/touch
                 jugador.x += (targetX - jugador.x) * 0.35;
             }
 
+            // Límites de pantalla para el jugador
             if (jugador.x < 20) jugador.x = 20;
             if (jugador.x > canvas.width - 20) jugador.x = canvas.width - 20;
-            targetX = jugador.x; 
+            targetX = jugador.x; // Sincronizar target tras límites
 
+            // Generación de Copas (cada 500m)
             if (distancia >= proxCopa) {
                 objetos.push({ x: Math.random() * (canvas.width - 40) + 20, y: -50, size: 35, tipo: 'copa', emoji: '🏆' });
                 proxCopa += 500;
             }
 
+            // Generación del Arco de Penal (cada 2000m)
             if (distancia >= proxArco) {
                 estado = 'PENAL';
                 arco.activo = true;
-                objetos = [];
+                objetos = []; // Limpiar obstáculos
+                // Centrar jugador automáticamente
                 targetX = canvas.width / 2;
                 jugador.x = canvas.width / 2;
             }
 
+            // Generar nuevos obstáculos basados en frameCount y velocidad
             frameCount++;
             if (frameCount % Math.max(7, 30 - Math.floor(velocidadY)) === 0) spawnObjeto();
 
+            // --- GESTIÓN DE OBJETOS Y COLISIONES ---
             for (let i = objetos.length - 1; i >= 0; i--) {
                 let obj = objetos[i];
-                obj.y += velocidadY;
+                obj.y += velocidadY; // Mover hacia abajo
 
+                // Cálculo de distancia para colisión (círculos aproximados)
                 let dx = jugador.x - obj.x;
                 let dy = jugador.y - obj.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < 28) { 
+                if (dist < 28) { // Radio de colisión
                     if (obj.tipo === 'roja') {
                         perder(obj.frase);
                         return;
                     } else if (obj.tipo === 'amarilla') {
                         amarillas++;
                         amarillasDOM.innerText = amarillas;
-                        objetos.splice(i, 1);
+                        objetos.splice(i, 1); // Eliminar tarjeta
                         if (amarillas >= 2) {
                             perder("¡Doble amarilla! Te echaron.");
                             return;
                         }
                     } else if (obj.tipo === 'obstaculo' || obj.tipo === 'cono') {
+                        // Mecánica de "Pagar con Gol"
                         if (goles > 0) {
                             goles--;
                             golesDOM.innerText = goles;
                             mostrarAvisoTemporal(`¡${obj.frase}! Perdiste un gol.`);
-                            objetos = []; 
+                            objetos = []; // Limpieza temporal para dar respiro
                         } else {
                             perder(obj.frase);
                             return;
                         }
                     } else if (obj.tipo === 'pelota') {
                         pelotas++;
+                        // Ganar copa cada 50 pelotas
                         if (pelotas > 0 && pelotas % 50 === 0) {
                             copas++;
                             copasDOM.innerText = copas;
@@ -378,32 +433,41 @@
                         objetos.splice(i, 1);
                     }
                 } else if (obj.y > canvas.height + 50) {
+                    // Eliminar objetos que salen por abajo
                     objetos.splice(i, 1);
                 }
             }
         } 
+        // --- MODO PENAL ---
         else if (estado === 'PENAL') {
+            // Movimiento horizontal del arco
             arco.x += arco.vx;
             if (arco.x < 40 || arco.x > canvas.width - 40) {
-                arco.vx *= -1; 
+                arco.vx *= -1; // Rebotar
             }
 
+            // Si se ha pateado la pelota
             if (tiro) {
-                tiro.y += tiro.vy;
+                tiro.y += tiro.vy; // Mover pelota arriba
+                // Verificar si llega a la línea del arco
                 if (tiro.y <= arco.y + 10) {
+                    // Colisión con el arco (GOL)
                     if (Math.abs(tiro.x - arco.x) < arco.width / 2 + 10) {
                         goles++;
                         golesDOM.innerText = goles;
                         textoPenal = "¡PASASTE EL PENAL! ✅";
-                        colorPenal = "#4caf50";
-                        timerPenal = 60; 
+                        colorPenal = "#4caf50"; // Verde
+                        timerPenal = 60; // Frames para mostrar mensaje
                         estado = 'RESULTADO_PENAL';
-                    } else if (tiro.y < -20) {
+                    } 
+                    // Pelota fuera (Errar)
+                    else if (tiro.y < -20) {
+                        // Usar una copa como "vida extra"
                         if (copas > 0) {
                             copas--;
                             copasDOM.innerText = copas;
                             textoPenal = "¡AFUERA! ❌";
-                            colorPenal = "#f44336";
+                            colorPenal = "#f44336"; // Rojo
                             timerPenal = 50; 
                             estado = 'RESULTADO_PENAL';
                         } else {
@@ -414,16 +478,19 @@
                 }
             }
         }
+        // --- MODO MOSTRAR RESULTADO PENAL (PAUSA TEMPORAL) ---
         else if (estado === 'RESULTADO_PENAL') {
             timerPenal--;
             if (timerPenal <= 0) {
                 if (textoPenal.includes("✅")) {
+                    // Gol: Volver a correr, siguiente arco más lejos
                     proxArco += 2000;
                     estado = 'JUGANDO';
                     arco.activo = false;
                     tiro = null;
-                    distancia += 50;
+                    distancia += 50; // Pequeño bonus de distancia
                 } else {
+                    // Erró pero tiene copas: Reintentar penal
                     estado = 'PENAL';
                     tiro = null;
                 }
@@ -431,34 +498,43 @@
         }
     }
 
+    // --- DIBUJO ---
+
     function dibujarConoNaranja(x, y) {
-        ctx.fillStyle = '#ff5722';
+        // Dibujo vectorial simple de un cono
+        ctx.fillStyle = '#ff5722'; // Naranja
         ctx.beginPath();
         ctx.moveTo(x, y - 15);
         ctx.lineTo(x + 15, y + 15);
         ctx.lineTo(x - 15, y + 15);
         ctx.fill();
+        // Franja blanca
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(x - 8, y + 2, 16, 4);
     }
 
     function dibujar() {
+        // 1. Limpiar fondo (Pasto verde)
         ctx.fillStyle = '#2e7d32';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        // 2. Dibujar líneas de césped (Efecto de movimiento)
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)'; // Líneas muy sutiles
         ctx.lineWidth = 4;
         ctx.beginPath();
         for(let i = 0; i < canvas.height; i += 100) {
+            // El offset crea la ilusión de movimiento vertical
             let offset = (estado === 'INICIO' || estado === 'GAMEOVER') ? 0 : (distancia % 100);
             ctx.moveTo(0, i + offset);
             ctx.lineTo(canvas.width, i + offset);
         }
         ctx.stroke();
 
+        // Configuración base de texto para emojis
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
+        // 3. Dibujar Objetos (Obstáculos e ítems)
         for (let obj of objetos) {
             if (obj.tipo === 'cono') {
                 dibujarConoNaranja(obj.x, obj.y);
@@ -468,10 +544,12 @@
             }
         }
 
+        // 4. Dibujar Arco y UI específica del Penal
         if (estado === 'PENAL' || estado === 'RESULTADO_PENAL') {
             ctx.font = '50px Arial';
             ctx.fillText(arco.emoji, arco.x, arco.y);
             
+            // Cartel de instrucciones del penal
             if (estado === 'PENAL' && !tiro) {
                 ctx.fillStyle = 'rgba(0,0,0,0.7)';
                 ctx.fillRect(20, canvas.height/2 - 60, canvas.width - 40, 140);
@@ -480,9 +558,11 @@
                 ctx.fillText('¡DALE!', canvas.width/2, canvas.height/2 - 15);
                 ctx.fillStyle = '#ffeb3b';
                 ctx.font = 'bold 24px Arial';
+                // Muestra copas + la chance actual
                 ctx.fillText(`🏆 Chances: ${copas + 1}`, canvas.width / 2, canvas.height/2 + 35);
             }
 
+            // Mensaje de GOL o AFUERA
             if (estado === 'RESULTADO_PENAL') {
                 ctx.fillStyle = 'rgba(0,0,0,0.85)';
                 ctx.fillRect(0, canvas.height/2 - 40, canvas.width, 80);
@@ -492,30 +572,34 @@
             }
         }
 
+        // 5. Dibujar Pelota del penal (tiro)
         if (tiro) {
             ctx.font = tiro.size + 'px Arial';
             ctx.fillText(tiro.emoji, tiro.x, tiro.y);
         }
 
+        // 6. Dibujar Jugador
         ctx.font = jugador.size + 'px Arial';
         ctx.fillText(jugador.emoji, jugador.x, jugador.y);
         
+        // Efecto visual: Pelota rebotando en los pies del jugador
         if (estado !== 'GAMEOVER' && (!tiro)) {
             ctx.font = '15px Arial';
             let offsetX = 12;
             let offsetY = 15;
+            // Animación de rebote si está corriendo
             if(estado === 'JUGANDO') offsetY += Math.sin(frameCount * 0.5) * 5; 
             ctx.fillText('⚽', jugador.x + offsetX, jugador.y + offsetY);
         }
 
-        // --- Visualización de Pausa ---
+        // 7. Visualización Superpuesta de Pausa
         if (estado === 'PAUSA') {
-            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillStyle = 'rgba(0,0,0,0.6)'; // Oscurecer fondo
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ffeb3b';
-            ctx.font = 'bold 50px Inter';
+            ctx.font = 'bold 50px Inter, Segoe UI';
             ctx.fillText('PAUSA', canvas.width / 2, canvas.height / 2 - 20);
-            ctx.font = '18px Inter';
+            ctx.font = '18px Inter, Segoe UI';
             ctx.fillStyle = 'white';
             ctx.fillText('Tocá al jugador para seguir', canvas.width / 2, canvas.height / 2 + 30);
             ctx.font = '40px Arial';
@@ -523,11 +607,15 @@
         }
     }
 
+    // --- BUCLE PRINCIPAL (GAME LOOP) ---
     function loop() {
         actualizar();
         dibujar();
+        // Solicitar el siguiente cuadro de animación (aprox 60fps)
         requestAnimationFrame(loop);
     }
+
+    // --- GESTIÓN DE PANTALLAS Y FLUJO ---
 
     function empezarJuego() {
         pantallaInicio.style.display = 'none';
@@ -545,11 +633,13 @@
     function perder(motivo) {
         estado = 'GAMEOVER';
         msjTexto.innerHTML = motivo;
+        // Resumen final de puntuación
         document.getElementById('resumenDistancia').innerHTML = `Llegaste a: <b style='color:#ffeb3b'>${Math.floor(distancia)}m</b>`;
         document.getElementById('resumenGoles').innerHTML = `Goles anotados: <b style='color:#4caf50'>${goles}</b>`;
-        msjBox.style.display = 'block';
+        msjBox.style.display = 'flex';
     }
 
+    // Resetea todas las variables a cero
     function reiniciarJuego() {
         estado = 'JUGANDO';
         distancia = 0;
@@ -564,6 +654,7 @@
         tiro = null;
         arco.activo = false;
         
+        // Actualizar DOM
         distDOM.innerText = 0;
         pelotasDOM.innerText = 0;
         amarillasDOM.innerText = 0;
@@ -571,10 +662,12 @@
         golesDOM.innerText = 0;
         msjBox.style.display = 'none';
         
+        // Centrar jugador
         targetX = canvas.width / 2;
         jugador.x = canvas.width / 2;
     }
 
+    // Iniciar el bucle cuando cargue la ventana
     window.onload = function() { loop(); };
 </script>
 </body>
