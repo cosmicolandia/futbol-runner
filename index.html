@@ -8,7 +8,8 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a;
+            background-color: #222;
+            color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             display: flex;
@@ -16,26 +17,11 @@
             align-items: center;
             height: 100vh;
         }
-
-        #gameWrapper {
-            position: relative;
-            width: 400px;
-            height: 600px;
-            max-width: 100vw;
-            max-height: 100vh;
-        }
-
         canvas {
-            background-color: #2e7d32;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            touch-action: none;
-            width: 100%;
-            height: 100%;
-            border: 3px solid #4caf50;
-            border-radius: 10px;
-            display: block;
+            background-color: #2e7d32; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            touch-action: none; 
         }
-
         #ui {
             position: absolute;
             top: 10px;
@@ -44,111 +30,58 @@
             text-align: center;
             pointer-events: none;
             width: 100%;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             text-shadow: 2px 2px 2px black;
-            z-index: 1005;
+            z-index: 5;
             display: none;
             white-space: nowrap;
-            color: white;
         }
         
-        #btnPausa {
-            position: absolute;
-            bottom: 70px; /* Alineado a la altura del jugador */
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: transparent; /* Sin círculo de fondo */
-            color: #fff;
-            border: none; /* Sin bordes */
-            display: none;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 1030;
-            font-size: 20px; /* Tamaño más pequeño */
-            opacity: 0.7; /* Más discreto */
-            transition: opacity 0.2s, transform 0.1s;
-            user-select: none;
-        }
-
-        #btnPausa:active {
-            opacity: 1;
-            transform: scale(1.2);
-        }
-
         #pantallaInicio {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            background-color: rgba(10, 50, 10, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1020;
+            z-index: 20;
             text-align: center;
-            border-radius: 10px;
-            color: white;
-            padding: 20px;
-            box-sizing: border-box;
         }
-
         #pantallaInicio h1 {
             color: #ffeb3b;
-            font-size: 40px;
-            margin: 0 0 20px 0;
+            font-size: 42px;
+            margin: 0 0 10px 0;
             text-shadow: 3px 3px 0 #000;
-            text-transform: uppercase;
-            letter-spacing: 2px;
         }
-
-        .instrucciones-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-            margin-bottom: 30px;
-        }
-
-        .inst-item {
-            background: rgba(0,0,0,0.4);
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #4caf50;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .inst-item b {
-            display: block;
-            color: #ffeb3b;
-            margin-bottom: 4px;
+        .instrucciones {
+            background: rgba(0,0,0,0.6);
+            padding: 15px 25px;
+            border-radius: 15px;
+            max-width: 320px;
             font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            border: 2px solid #4caf50;
+            text-align: left;
         }
+        .instrucciones p { margin: 8px 0; }
         
         #btnJugar {
-            padding: 18px 60px;
-            font-size: 26px;
+            padding: 15px 50px;
+            font-size: 24px;
             font-weight: bold;
             background-color: #ffeb3b;
             color: #000;
             border: none;
-            border-radius: 50px;
+            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 6px 0 #bcaa00;
-            transition: all 0.1s;
+            box-shadow: 0 6px 0 #bcaa00, 0 10px 10px rgba(0,0,0,0.5);
             animation: latido 1.5s infinite;
-        }
-
-        #btnJugar:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #bcaa00;
         }
         
         @keyframes latido {
@@ -162,63 +95,61 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80%;
             font-size: 22px;
             font-weight: bold;
             text-align: center;
             background: rgba(0, 0, 0, 0.95);
-            padding: 25px;
+            padding: 25px 35px;
             border-radius: 15px;
             display: none;
             cursor: pointer;
             border: 2px solid #ff5722;
-            z-index: 1010;
+            z-index: 10;
+        }
+
+        #avisoTemporal {
+            position: absolute;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.8);
             color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+            z-index: 30;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="gameWrapper">
-        <div id="ui">
-            🏃 <span id="distVal">0</span>m | ⚽ <span id="pelotasVal">0</span> | 🏆 <span id="copasVal">0</span> | 🥅 <span id="golesVal">0</span>
-        </div>
-
-        <!-- Botón de pausa minimalista -->
-        <div id="btnPausa" onclick="togglePausa()">⏸️</div>
-
-        <div id="pantallaInicio">
-            <h1>Fútbol Runner</h1>
-            <div class="instrucciones-grid">
-                <div class="inst-item">
-                    <b>🎮 MUEVETE</b>
-                    Desliza o usa flechas para esquivar.
-                </div>
-                <div class="inst-item">
-                    <b>⚽ PELOTAS</b>
-                    Cada 50 pelotas ganas 1 trofeo extra.
-                </div>
-                <div class="inst-item">
-                    <b>🏆 TROFEOS</b>
-                    Son vidas extra si fallas un penal.
-                </div>
-                <div class="inst-item">
-                    <b>🥅 PENALES</b>
-                    Doble toque para el GOL cada 2km.
-                </div>
-            </div>
-            <button id="btnJugar" onclick="empezarJuego()">¡A JUGAR!</button>
-        </div>
-
-        <div id="mensaje" onclick="volverAlInicio()">
-            <span id="textoMensaje" style="color: #ff5722;"></span><br><br>
-            <span id="resumenDistancia"></span><br>
-            <span id="resumenGoles"></span><br><br>
-            <span style="font-size: 16px; color: #4caf50;">(Toca para continuar)</span>
-        </div>
-
-        <canvas id="juego" width="400" height="600"></canvas>
+    <div id="ui">
+        🏃 <span id="distVal">0</span>m | ⚽ <span id="pelotasVal">0</span> | 🟨 <span id="amarillasVal">0</span> | 🏆 <span id="copasVal">0</span> | 🥅 <span id="golesVal">0</span>
     </div>
+
+    <div id="avisoTemporal"></div>
+
+    <div id="pantallaInicio">
+        <h1>Fútbol Runner ⚽</h1>
+        <div class="instrucciones">
+            <p><b>🎮 Controles:</b> Mantené presionado y deslizá para moverte. Doble clic para patear penales.</p>
+            <p><b>⚠️ Obstáculos:</b> Esquivá conos, barreras y lesiones. Si tenés <b>Goles (🥅)</b>, podés "pagar" uno para seguir jugando.</p>
+            <p><b>🟨 Tarjetas:</b> 2 amarillas o 1 roja = ¡EXPULSADO!</p>
+            <p><b>🏆 Copas:</b> Aparecen cada 500m o al juntar <b>50 pelotas</b>. ¡Son chances para el penal!</p>
+        </div>
+        <button id="btnJugar" onclick="empezarJuego()">¡JUGAR!</button>
+    </div>
+
+    <div id="mensaje" onclick="volverAlInicio()">
+        <span id="textoMensaje" style="color: #ff5722;"></span><br><br>
+        <span id="resumenDistancia"></span><br>
+        <span id="resumenGoles"></span><br><br>
+        <span style="font-size: 16px; color: #4caf50;">(Toca para continuar)</span>
+    </div>
+
+    <canvas id="juego" width="400" height="600"></canvas>
 
 <script>
     const canvas = document.getElementById('juego');
@@ -226,43 +157,44 @@
     
     const distDOM = document.getElementById('distVal');
     const pelotasDOM = document.getElementById('pelotasVal');
+    const amarillasDOM = document.getElementById('amarillasVal');
     const copasDOM = document.getElementById('copasVal');
     const golesDOM = document.getElementById('golesVal');
     const msjBox = document.getElementById('mensaje');
     const msjTexto = document.getElementById('textoMensaje');
     const pantallaInicio = document.getElementById('pantallaInicio');
     const interfazUI = document.getElementById('ui');
-    const btnPausa = document.getElementById('btnPausa');
+    const avisoTemp = document.getElementById('avisoTemporal');
 
     let estado = 'INICIO'; 
-    let pausado = false;
     let distancia = 0;
     let pelotas = 0;
+    let amarillas = 0;
     let copas = 0;
-    let goles = 0;
-    let velocidadY = 6;
+    let goles = 0; 
+    let velocidadY = 8; 
     let frameCount = 0;
     
     let timerPenal = 0;
     let textoPenal = "";
     let colorPenal = "";
+
     let proxCopa = 500;
     let proxArco = 2000;
 
     const jugador = { x: 200, y: 500, size: 40, emoji: '🏃‍♂️' };
     let targetX = 200; 
-    const arco = { x: 200, y: 100, width: 80, height: 40, emoji: '🥅', vx: 5, activo: false };
+    
+    const arco = { x: 200, y: 100, width: 80, height: 40, emoji: '🥅', vx: 6, activo: false }; 
     let objetos = [];
     let tiro = null;
-
     let ultimoToque = 0;
     let teclas = { izquierda: false, derecha: false };
 
     canvas.addEventListener('pointermove', (e) => {
-        if (estado === 'JUGANDO' && !pausado) {
+        if (estado === 'JUGANDO') {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width; 
-            targetX = (e.clientX - rect.left) * scaleX;
+            targetX = e.clientX - rect.left;
         }
     });
 
@@ -270,8 +202,7 @@
         if (estado === 'INICIO' && e.code === 'Enter') empezarJuego();
         if (e.key === 'ArrowLeft') teclas.izquierda = true;
         if (e.key === 'ArrowRight') teclas.derecha = true;
-        if (e.code === 'Space' && estado === 'PENAL' && !tiro && !pausado) disparar();
-        if ((e.key.toLowerCase() === 'p' || e.key === 'Escape') && (estado === 'JUGANDO' || estado === 'PENAL')) togglePausa();
+        if (e.code === 'Space' && estado === 'PENAL' && !tiro) disparar();
     });
     
     window.addEventListener('keyup', (e) => {
@@ -280,7 +211,6 @@
     });
 
     canvas.addEventListener('pointerdown', (e) => {
-        if (pausado) return;
         let ahora = Date.now();
         if (ahora - ultimoToque < 300 && estado === 'PENAL' && !tiro) {
             disparar();
@@ -288,23 +218,24 @@
         ultimoToque = ahora;
     });
 
-    function togglePausa() {
-        if (estado !== 'JUGANDO' && estado !== 'PENAL') return;
-        pausado = !pausado;
-        btnPausa.innerText = pausado ? "▶️" : "⏸️";
+    function disparar() {
+        tiro = { x: jugador.x, y: jugador.y, vy: -14, size: 25, emoji: '⚽' }; 
     }
 
-    function disparar() {
-        tiro = { x: jugador.x, y: jugador.y, vy: -14, size: 25, emoji: '⚽' };
+    function mostrarAvisoTemporal(texto) {
+        avisoTemp.innerText = texto;
+        avisoTemp.style.display = 'block';
+        setTimeout(() => { avisoTemp.style.display = 'none'; }, 2000);
     }
 
     function spawnObjeto() {
         const tipos = [
-            { tipo: 'obstaculo', emoji: '🚧', prob: 0.15, nombre: 'barrera' },
-            { tipo: 'obstaculo', emoji: '🟥', prob: 0.15, nombre: 'tarjeta roja' },
-            { tipo: 'obstaculo', emoji: '🚑', prob: 0.15, nombre: 'lesión médica' },
-            { tipo: 'cono', prob: 0.35, nombre: 'cono naranja' },
-            { tipo: 'pelota', emoji: '⚽', prob: 0.20, nombre: 'pelota' }
+            { tipo: 'obstaculo', emoji: '🚧', prob: 0.12, nombre: 'barrera', frase: 'Pegaste en la barrera' },
+            { tipo: 'roja', emoji: '🟥', prob: 0.10, nombre: 'tarjeta roja', frase: '¡Te echaron!' },
+            { tipo: 'amarilla', emoji: '🟨', prob: 0.12, nombre: 'amarilla', frase: '' },
+            { tipo: 'obstaculo', emoji: '🚑', prob: 0.12, nombre: 'lesión médica', frase: 'Te lesionaste' },
+            { tipo: 'cono', prob: 0.30, nombre: 'cono naranja', frase: 'Sos de madera' },
+            { tipo: 'pelota', emoji: '⚽', prob: 0.24, nombre: 'pelota', frase: '' }
         ];
         
         let rand = Math.random();
@@ -325,27 +256,27 @@
             size: 30,
             tipo: objElegido.tipo,
             emoji: objElegido.emoji,
-            nombre: objElegido.nombre
+            nombre: objElegido.nombre,
+            frase: objElegido.frase
         });
     }
 
     function actualizar() {
-        if (estado === 'INICIO' || estado === 'GAMEOVER' || pausado) return;
+        if (estado === 'INICIO' || estado === 'GAMEOVER') return;
 
         if (estado === 'JUGANDO') {
-            distancia += velocidadY / 10;
+            distancia += velocidadY / 12;
             distDOM.innerText = Math.floor(distancia);
-            velocidadY = 6 + (distancia / 800); 
-            if (velocidadY > 15) velocidadY = 15;
+            velocidadY = 8 + (distancia / 400); 
 
             if (teclas.izquierda) {
-                jugador.x -= 8;
+                jugador.x -= 9;
                 targetX = jugador.x;
             } else if (teclas.derecha) {
-                jugador.x += 8;
+                jugador.x += 9;
                 targetX = jugador.x;
             } else {
-                jugador.x += (targetX - jugador.x) * 0.3;
+                jugador.x += (targetX - jugador.x) * 0.35;
             }
 
             if (jugador.x < 20) jugador.x = 20;
@@ -366,7 +297,7 @@
             }
 
             frameCount++;
-            if (frameCount % Math.max(8, 35 - Math.floor(velocidadY)) === 0) spawnObjeto();
+            if (frameCount % Math.max(7, 30 - Math.floor(velocidadY)) === 0) spawnObjeto();
 
             for (let i = objetos.length - 1; i >= 0; i--) {
                 let obj = objetos[i];
@@ -376,16 +307,34 @@
                 let dy = jugador.y - obj.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < 25) { 
-                    if (obj.tipo === 'obstaculo' || obj.tipo === 'cono') {
-                        let msjFinal = "¡Perdiste!";
-                        if (obj.nombre === 'lesión médica') msjFinal = "¡Te lesionaste!";
-                        else if (obj.nombre === 'tarjeta roja') msjFinal = "¡Te echaron!";
-                        perder(msjFinal);
+                if (dist < 28) { 
+                    if (obj.tipo === 'roja') {
+                        perder(obj.frase);
                         return;
+                    } else if (obj.tipo === 'amarilla') {
+                        amarillas++;
+                        amarillasDOM.innerText = amarillas;
+                        objetos.splice(i, 1);
+                        if (amarillas >= 2) {
+                            perder("¡Doble amarilla! Te echaron.");
+                            return;
+                        }
+                    } else if (obj.tipo === 'obstaculo' || obj.tipo === 'cono') {
+                        if (goles > 0) {
+                            goles--;
+                            golesDOM.innerText = goles;
+                            mostrarAvisoTemporal(`¡${obj.frase}! Perdiste un gol.`);
+                            objetos = []; // Limpia el camino para seguir
+                        } else {
+                            perder(obj.frase);
+                            return;
+                        }
                     } else if (obj.tipo === 'pelota') {
                         pelotas++;
-                        if (pelotas > 0 && pelotas % 50 === 0) { copas++; copasDOM.innerText = copas; }
+                        if (pelotas > 0 && pelotas % 50 === 0) {
+                            copas++;
+                            copasDOM.innerText = copas;
+                        }
                         pelotasDOM.innerText = pelotas;
                         objetos.splice(i, 1);
                     } else if (obj.tipo === 'copa') {
@@ -400,16 +349,19 @@
         } 
         else if (estado === 'PENAL') {
             arco.x += arco.vx;
-            if (arco.x < 40 || arco.x > canvas.width - 40) arco.vx *= -1; 
+            if (arco.x < 40 || arco.x > canvas.width - 40) {
+                arco.vx *= -1; 
+            }
+
             if (tiro) {
                 tiro.y += tiro.vy;
                 if (tiro.y <= arco.y + 10) {
                     if (Math.abs(tiro.x - arco.x) < arco.width / 2 + 10) {
                         goles++;
                         golesDOM.innerText = goles;
-                        textoPenal = "¡GOL! PASASTE ✅";
+                        textoPenal = "¡PASASTE EL PENAL! ✅";
                         colorPenal = "#4caf50";
-                        timerPenal = 60;
+                        timerPenal = 60; 
                         estado = 'RESULTADO_PENAL';
                     } else if (tiro.y < -20) {
                         if (copas > 0) {
@@ -417,10 +369,10 @@
                             copasDOM.innerText = copas;
                             textoPenal = "¡AFUERA! ❌";
                             colorPenal = "#f44336";
-                            timerPenal = 50;
+                            timerPenal = 50; 
                             estado = 'RESULTADO_PENAL';
                         } else {
-                            perder("¡Erraste el penal final!");
+                            perder("¡Erraste el penal y no tenés más chances!");
                             return;
                         }
                     }
@@ -452,23 +404,18 @@
         ctx.lineTo(x - 15, y + 15);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(x - 6, y - 2);
-        ctx.lineTo(x + 6, y - 2);
-        ctx.lineTo(x + 10, y + 7);
-        ctx.lineTo(x - 10, y + 7);
-        ctx.fill();
+        ctx.fillRect(x - 8, y + 2, 16, 4);
     }
 
     function dibujar() {
         ctx.fillStyle = '#2e7d32';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
         ctx.lineWidth = 4;
         ctx.beginPath();
         for(let i = 0; i < canvas.height; i += 100) {
-            let offset = (estado === 'INICIO' || estado === 'GAMEOVER' || pausado) ? 0 : (distancia % 100);
+            let offset = (estado === 'INICIO' || estado === 'GAMEOVER') ? 0 : (distancia % 100);
             ctx.moveTo(0, i + offset);
             ctx.lineTo(canvas.width, i + offset);
         }
@@ -478,22 +425,29 @@
         ctx.textBaseline = 'middle';
 
         for (let obj of objetos) {
-            if (obj.tipo === 'cono') dibujarConoNaranja(obj.x, obj.y);
-            else { ctx.font = obj.size + 'px Arial'; ctx.fillText(obj.emoji, obj.x, obj.y); }
+            if (obj.tipo === 'cono') {
+                dibujarConoNaranja(obj.x, obj.y);
+            } else {
+                ctx.font = obj.size + 'px Arial';
+                ctx.fillText(obj.emoji, obj.x, obj.y);
+            }
         }
 
         if (estado === 'PENAL' || estado === 'RESULTADO_PENAL') {
             ctx.font = '50px Arial';
             ctx.fillText(arco.emoji, arco.x, arco.y);
+            
             if (estado === 'PENAL' && !tiro) {
                 ctx.fillStyle = 'rgba(0,0,0,0.7)';
                 ctx.fillRect(20, canvas.height/2 - 60, canvas.width - 40, 140);
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '18px Arial';
-                ctx.fillText('¡DOBLE TOQUE PARA PATEAR!', canvas.width/2, canvas.height/2 - 10);
+                ctx.font = '20px Arial';
+                ctx.fillText('¡DALE!', canvas.width/2, canvas.height/2 - 15);
                 ctx.fillStyle = '#ffeb3b';
-                ctx.fillText(`🏆 Vidas: ${copas + 1}`, canvas.width / 2, canvas.height/2 + 30);
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(`🏆 Chances: ${copas + 1}`, canvas.width / 2, canvas.height/2 + 35);
             }
+
             if (estado === 'RESULTADO_PENAL') {
                 ctx.fillStyle = 'rgba(0,0,0,0.85)';
                 ctx.fillRect(0, canvas.height/2 - 40, canvas.width, 80);
@@ -503,26 +457,20 @@
             }
         }
 
-        if (tiro) { ctx.font = tiro.size + 'px Arial'; ctx.fillText(tiro.emoji, tiro.x, tiro.y); }
+        if (tiro) {
+            ctx.font = tiro.size + 'px Arial';
+            ctx.fillText(tiro.emoji, tiro.x, tiro.y);
+        }
 
         ctx.font = jugador.size + 'px Arial';
         ctx.fillText(jugador.emoji, jugador.x, jugador.y);
         
         if (estado !== 'GAMEOVER' && (!tiro)) {
             ctx.font = '15px Arial';
-            let offsetY = 15 + (pausado ? 0 : Math.sin(frameCount * 0.5) * 5);
-            ctx.fillText('⚽', jugador.x + 12, jugador.y + offsetY);
-        }
-
-        if (pausado) {
-            ctx.fillStyle = 'rgba(0,0,0,0.6)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ffeb3b';
-            ctx.font = 'bold 50px Arial';
-            ctx.fillText('PAUSA', canvas.width/2, canvas.height/2);
-            ctx.fillStyle = 'white';
-            ctx.font = '20px Arial';
-            ctx.fillText('Toca el botón para seguir', canvas.width/2, canvas.height/2 + 50);
+            let offsetX = 12;
+            let offsetY = 15;
+            if(estado === 'JUGANDO') offsetY += Math.sin(frameCount * 0.5) * 5; 
+            ctx.fillText('⚽', jugador.x + offsetX, jugador.y + offsetY);
         }
     }
 
@@ -535,51 +483,50 @@
     function empezarJuego() {
         pantallaInicio.style.display = 'none';
         interfazUI.style.display = 'block';
-        btnPausa.style.display = 'flex';
         reiniciarJuego();
     }
 
     function volverAlInicio() {
         msjBox.style.display = 'none';
         interfazUI.style.display = 'none';
-        btnPausa.style.display = 'none';
         pantallaInicio.style.display = 'flex';
         estado = 'INICIO';
     }
 
     function perder(motivo) {
         estado = 'GAMEOVER';
-        btnPausa.style.display = 'none';
         msjTexto.innerHTML = motivo;
-        document.getElementById('resumenDistancia').innerHTML = `Llegaste a: <b>${Math.floor(distancia)}m</b>`;
-        document.getElementById('resumenGoles').innerHTML = `Goles: <b>${goles}</b>`;
+        document.getElementById('resumenDistancia').innerHTML = `Llegaste a: <b style='color:#ffeb3b'>${Math.floor(distancia)}m</b>`;
+        document.getElementById('resumenGoles').innerHTML = `Goles anotados: <b style='color:#4caf50'>${goles}</b>`;
         msjBox.style.display = 'block';
     }
 
     function reiniciarJuego() {
         estado = 'JUGANDO';
-        pausado = false;
         distancia = 0;
         pelotas = 0;
+        amarillas = 0;
         copas = 0;
         goles = 0;
-        velocidadY = 6;
+        velocidadY = 8; 
         proxCopa = 500;
         proxArco = 2000;
         objetos = [];
         tiro = null;
         arco.activo = false;
-        btnPausa.innerText = "⏸️";
+        
         distDOM.innerText = 0;
         pelotasDOM.innerText = 0;
+        amarillasDOM.innerText = 0;
         copasDOM.innerText = 0;
         golesDOM.innerText = 0;
         msjBox.style.display = 'none';
+        
         targetX = canvas.width / 2;
         jugador.x = canvas.width / 2;
     }
 
-    loop();
+    window.onload = function() { loop(); };
 </script>
 </body>
 </html>
