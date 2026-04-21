@@ -10,7 +10,7 @@
             padding: 0;
             background-color: #222;
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -19,8 +19,11 @@
         }
         canvas {
             background-color: #2e7d32; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
             touch-action: none; 
+            border-radius: 8px;
+            max-width: 100%;
+            max-height: 90vh;
         }
         #ui {
             position: absolute;
@@ -82,6 +85,12 @@
             cursor: pointer;
             box-shadow: 0 6px 0 #bcaa00, 0 10px 10px rgba(0,0,0,0.5);
             animation: latido 1.5s infinite;
+            transition: transform 0.1s;
+        }
+
+        #btnJugar:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #bcaa00;
         }
         
         @keyframes latido {
@@ -151,7 +160,7 @@
 
     <canvas id="juego" width="400" height="600"></canvas>
 
-<script>
+    <script>
     const canvas = document.getElementById('juego');
     const ctx = canvas.getContext('2d');
     
@@ -166,7 +175,7 @@
     const interfazUI = document.getElementById('ui');
     const avisoTemp = document.getElementById('avisoTemporal');
 
-    let estado = 'INICIO'; 
+    let estado = 'INICIO'; // INICIO, JUGANDO, PAUSA, PENAL, RESULTADO_PENAL, GAMEOVER
     let distancia = 0;
     let pelotas = 0;
     let amarillas = 0;
@@ -194,7 +203,7 @@
     canvas.addEventListener('pointermove', (e) => {
         if (estado === 'JUGANDO') {
             const rect = canvas.getBoundingClientRect();
-            targetX = e.clientX - rect.left;
+            targetX = (e.clientX - rect.left) * (canvas.width / rect.width);
         }
     });
 
@@ -202,7 +211,9 @@
         if (estado === 'INICIO' && e.code === 'Enter') empezarJuego();
         if (e.key === 'ArrowLeft') teclas.izquierda = true;
         if (e.key === 'ArrowRight') teclas.derecha = true;
-        if (e.code === 'Space' && estado === 'PENAL' && !tiro) disparar();
+        if (e.code === 'Space' && (estado === 'PENAL') && !tiro) disparar();
+        // Tecla P para pausa opcional
+        if (e.code === 'KeyP') alternarPausaManual();
     });
     
     window.addEventListener('keyup', (e) => {
@@ -211,12 +222,36 @@
     });
 
     canvas.addEventListener('pointerdown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+        // --- Lógica de Pausa: Clic arriba o sobre el jugador ---
+        if (estado === 'JUGANDO' || estado === 'PAUSA') {
+            const dx = clickX - jugador.x;
+            const dy = clickY - jugador.y;
+            // Si el clic es en un radio de 50px del jugador
+            if (Math.sqrt(dx*dx + dy*dy) < 50) {
+                alternarPausaManual();
+                return; // Salimos para no disparar el penal accidentalmente si estuviéramos en ese estado
+            }
+        }
+
+        // --- Lógica de Penal (Doble Click) ---
         let ahora = Date.now();
         if (ahora - ultimoToque < 300 && estado === 'PENAL' && !tiro) {
             disparar();
         }
         ultimoToque = ahora;
     });
+
+    function alternarPausaManual() {
+        if (estado === 'JUGANDO') {
+            estado = 'PAUSA';
+        } else if (estado === 'PAUSA') {
+            estado = 'JUGANDO';
+        }
+    }
 
     function disparar() {
         tiro = { x: jugador.x, y: jugador.y, vy: -14, size: 25, emoji: '⚽' }; 
@@ -262,7 +297,7 @@
     }
 
     function actualizar() {
-        if (estado === 'INICIO' || estado === 'GAMEOVER') return;
+        if (estado === 'INICIO' || estado === 'GAMEOVER' || estado === 'PAUSA') return;
 
         if (estado === 'JUGANDO') {
             distancia += velocidadY / 12;
@@ -324,7 +359,7 @@
                             goles--;
                             golesDOM.innerText = goles;
                             mostrarAvisoTemporal(`¡${obj.frase}! Perdiste un gol.`);
-                            objetos = []; // Limpia el camino para seguir
+                            objetos = []; 
                         } else {
                             perder(obj.frase);
                             return;
@@ -471,6 +506,20 @@
             let offsetY = 15;
             if(estado === 'JUGANDO') offsetY += Math.sin(frameCount * 0.5) * 5; 
             ctx.fillText('⚽', jugador.x + offsetX, jugador.y + offsetY);
+        }
+
+        // --- Visualización de Pausa ---
+        if (estado === 'PAUSA') {
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffeb3b';
+            ctx.font = 'bold 50px Inter';
+            ctx.fillText('PAUSA', canvas.width / 2, canvas.height / 2 - 20);
+            ctx.font = '18px Inter';
+            ctx.fillStyle = 'white';
+            ctx.fillText('Tocá al jugador para seguir', canvas.width / 2, canvas.height / 2 + 30);
+            ctx.font = '40px Arial';
+            ctx.fillText('⏸️', canvas.width / 2, canvas.height / 2 - 90);
         }
     }
 
